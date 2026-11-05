@@ -548,6 +548,104 @@
 
   .hidden { display: none !important; }
 
+  /* ───── Mobile (default): right column is just a stacked column ───── */
+  .info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .btn .sub { display: none; }
+
+  /* ═════════ PC LAYOUT — schermi larghi ═════════ */
+  @media (min-width: 960px) {
+    body {
+      align-items: center;
+      padding: 3rem 3rem;
+    }
+
+    .card {
+      max-width: 1180px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(48px, 6vw, 96px);
+      align-items: center;
+    }
+
+    .artwork-wrap {
+      perspective: 1400px;
+      position: sticky;
+      top: 3rem;
+      width: min(100%, calc(100vh - 6rem));
+      justify-self: center;
+    }
+    .artwork { border-radius: 22px; }
+
+    .info { align-items: stretch; }
+
+    .meta { margin-top: 0; text-align: left; }
+    .status { margin-bottom: 1.4rem; }
+    .title { font-size: clamp(44px, 4.6vw, 64px); letter-spacing: -0.03em; }
+    .artist { font-size: 18px; margin-top: 0.6rem; }
+
+    .release-info { text-align: left; margin-top: 2rem; }
+    .release-date { font-size: 13px; }
+    .countdown { max-width: 440px; }
+    .cd-item { text-align: center; }
+    .cd-value { font-size: 32px; }
+
+    .divider { margin: 2rem 0 1.6rem; background: linear-gradient(90deg, var(--line), transparent); }
+
+    /* platforms in two columns */
+    .platforms {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn { padding: 10px 12px; gap: 12px; font-size: 14px; }
+    .btn .icon-wrap { width: 38px; height: 38px; }
+    .btn .name { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+    .btn .badge { display: none; }
+    .btn .sub {
+      display: block;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #777;
+      margin-top: 2px;
+    }
+    .btn .action { padding: 6px 11px; font-size: 11.5px; }
+
+    .extras { max-width: 100%; }
+
+    .footer { text-align: left; margin-top: 2rem; }
+
+    .lb-hint { font-size: 12px; }
+  }
+
+  /* laptop screens with little height: tighten vertical spacing */
+  @media (min-width: 960px) and (max-height: 820px) {
+    body { padding-top: 2rem; padding-bottom: 2rem; }
+    .status { margin-bottom: 1rem; }
+    .title { font-size: clamp(38px, 4vw, 52px); }
+    .release-info { margin-top: 1.4rem; }
+    .cd-item { padding: 9px 0 8px; }
+    .cd-value { font-size: 26px; }
+    .divider { margin: 1.4rem 0 1.2rem; }
+    .platforms { gap: 8px; }
+    .btn { padding: 8px 12px; }
+    .btn .icon-wrap { width: 34px; height: 34px; }
+    .extras { margin-top: 10px; }
+    .ghost { padding: 10px; }
+    .footer { margin-top: 1.2rem; }
+  }
+
+  /* very wide screens: a bit more breathing room */
+  @media (min-width: 1440px) {
+    .card { max-width: 1280px; }
+  }
+
   /* Respect users who prefer less motion */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -570,6 +668,8 @@
       <span class="glare"></span>
     </div>
   </div>
+
+  <div class="info">
 
   <div class="meta">
     <p class="status"><span class="dot"></span><span id="statusText">Pre-save</span></p>
@@ -606,6 +706,8 @@
     &copy; <span id="year"></span> · <span id="footerArtist"></span><br>
     powered by <a href="https://www.dakoyas-lab.com" target="_blank" rel="noopener">dakoyas lab.</a>
   </footer>
+
+  </div>
 
 </main>
 
@@ -751,7 +853,7 @@ function renderButtons() {
     a.style.animationDelay = `${0.25 + i++ * 0.06}s`;
     a.innerHTML = `
       <span class="icon-wrap">${p.icon}</span>
-      <span class="name">${p.name}</span>
+      <span class="name">${p.name}${p.badge ? `<small class="sub">${p.badge}</small>` : ''}</span>
       ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
       <span class="action">${out ? (key === 'beatport' ? 'Buy' : 'Listen') : p.pre}</span>`;
     wrap.appendChild(a);
