@@ -461,9 +461,10 @@
     background: var(--brand-bg, #1e1e1e);
   }
 
-  .btn .name { flex: 1; }
+  .btn .name { flex: 0 1 auto; min-width: 0; }
 
   .btn .badge {
+    margin-left: -4px;
     font-size: 9.5px;
     font-weight: 600;
     letter-spacing: 0.12em;
@@ -485,6 +486,7 @@
     color: var(--text);
     white-space: nowrap;
     transition: background 0.15s;
+    margin-left: auto;
   }
   .btn:hover .action { background: rgba(255,255,255,0.16); }
 
