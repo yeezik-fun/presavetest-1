@@ -255,7 +255,35 @@
     flex-direction: column;
     padding: 8% 8% 7%;
     color: var(--text);
+    isolation: isolate;
   }
+  /* the back continues the artwork: mirrored, blurred, darkened */
+  .face.back::before {
+    content: '';
+    position: absolute;
+    inset: -12%;
+    z-index: -2;
+    background: var(--cover) center / cover no-repeat;
+    transform: scaleX(-1);
+    filter: blur(22px) saturate(1.35);
+    opacity: 0.85;
+  }
+  .face.back::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 45%, rgba(0,0,0,0.88) 100%);
+  }
+  .back .tracklist, .back .tracklist li { border-color: rgba(255,255,255,0.14); }
+  .back .tracklist .n { color: rgba(255,255,255,0.45); }
+  .back .credits { color: rgba(255,255,255,0.62); }
+  .back .credits b { color: #fff; }
+  .back-foot .legal { color: rgba(255,255,255,0.45); }
+  .back-head .b-artist { color: rgba(255,255,255,0.7) !important; }
+  .barcode { background: #f2f2f2; padding: 4px 5px; border-radius: 3px; }
+  .barcode i { background: #111 !important; }
   .back-head { display: flex; justify-content: space-between; align-items: flex-start; }
   .back-head .b-artist { font-size: clamp(11px, 2.4vw, 13px); letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
   .back-head svg { width: clamp(22px, 5vw, 30px); height: auto; opacity: 0.9; }
@@ -988,6 +1016,7 @@ if (!reduceMotion && matchMedia('(pointer: fine)').matches) {
   $('bArtist').textContent = CONFIG.artist;
   $('bTitle').textContent = CONFIG.title;
   $('lbCover').src = CONFIG.cover;
+  $('lightbox').style.setProperty('--cover', `url("${CONFIG.cover}")`);
   $('lbCover').alt = `${CONFIG.title} — ${CONFIG.artist} cover`;
   $('bTracks').innerHTML = (b.tracks || []).map((t, i) =>
     `<li><span class="n">${String(i + 1).padStart(2, '0')}</span><span class="t"></span><span class="dur"></span></li>`).join('');
