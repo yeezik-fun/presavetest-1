@@ -139,9 +139,11 @@
     box-shadow:
       0 30px 80px -20px rgba(0,0,0,0.9),
       0 0 60px -10px rgba(255,255,255,0.08);
-    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-    transition: transform 0.4s cubic-bezier(.2,.7,.2,1);
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--sc, 1));
+    transition: transform 0.4s cubic-bezier(.2,.7,.2,1), box-shadow 0.4s;
     will-change: transform;
+    cursor: zoom-in;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .artwork img {
@@ -167,6 +169,153 @@
     0%, 60% { background-position: 150% 0; }
     100%    { background-position: -50% 0; }
   }
+
+  /* glare that follows the pointer */
+  .glare {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,0.22), transparent 55%);
+    opacity: var(--go, 0);
+    transition: opacity 0.3s;
+    mix-blend-mode: soft-light;
+    z-index: 2;
+  }
+
+  .artwork.tilting { box-shadow: 0 45px 90px -25px rgba(0,0,0,0.95), 0 0 80px -10px rgba(255,255,255,0.14); }
+
+  /* ───── Lightbox: cover in primo piano + flip ───── */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background: rgba(0,0,0,0);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    transition: background 0.45s, backdrop-filter 0.45s, -webkit-backdrop-filter 0.45s;
+    visibility: hidden;
+  }
+  .lightbox.open {
+    visibility: visible;
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .lb-stage {
+    width: min(88vw, 78vh, 560px);
+    aspect-ratio: 1 / 1;
+    perspective: 1400px;
+    transition: transform 0.55s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .lb-tilt {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 0.35s cubic-bezier(.2,.7,.2,1);
+  }
+
+  .lb-flip {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(.3,1.25,.4,1);
+    cursor: pointer;
+  }
+  .lightbox.flipped .lb-flip { transform: rotateY(180deg); }
+
+  .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 50px 120px -30px rgba(0,0,0,1), 0 0 100px -20px rgba(255,255,255,0.15);
+  }
+  .face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .face .glare { --go: 1; }
+
+  /* Back cover */
+  .face.back {
+    transform: rotateY(180deg);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255,255,255,0.07), transparent 60%),
+      #0b0b0b;
+    display: flex;
+    flex-direction: column;
+    padding: 8% 8% 7%;
+    color: var(--text);
+  }
+  .back-head { display: flex; justify-content: space-between; align-items: flex-start; }
+  .back-head .b-artist { font-size: clamp(11px, 2.4vw, 13px); letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+  .back-head svg { width: clamp(22px, 5vw, 30px); height: auto; opacity: 0.9; }
+  .back .b-title { font-size: clamp(22px, 6vw, 36px); font-weight: 700; letter-spacing: -0.02em; margin-top: 4%; line-height: 1.05; }
+  .back .tracklist { margin-top: 7%; list-style: none; border-top: 1px solid var(--line); }
+  .back .tracklist li {
+    display: flex; gap: 12px; align-items: baseline;
+    padding: 3.2% 0;
+    border-bottom: 1px solid var(--line);
+    font-size: clamp(12px, 2.8vw, 15px);
+  }
+  .back .tracklist .n { color: var(--faint); font-variant-numeric: tabular-nums; width: 1.6em; }
+  .back .tracklist .t { flex: 1; }
+  .back .tracklist .dur { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .back .credits {
+    margin-top: auto;
+    font-size: clamp(9.5px, 2.1vw, 11.5px);
+    line-height: 1.75;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .back .credits b { color: #bbb; font-weight: 500; }
+  .back-foot { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 5%; gap: 12px; }
+  .back-foot .legal { font-size: clamp(8px, 1.8vw, 10px); color: var(--faint); letter-spacing: 0.05em; line-height: 1.5; }
+  .barcode { height: clamp(26px, 6vw, 36px); display: flex; gap: 1.5px; align-items: stretch; }
+  .barcode i { display: block; background: #d8d8d8; }
+
+  .lb-hint {
+    position: absolute;
+    left: 50%;
+    bottom: max(22px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    opacity: 0;
+    transition: opacity 0.4s 0.4s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .lightbox.open .lb-hint { opacity: 1; }
+
+  .lb-close {
+    position: absolute;
+    top: max(16px, env(safe-area-inset-top));
+    right: 16px;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: #ddd;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s, background 0.15s;
+  }
+  .lb-close:hover { background: rgba(255,255,255,0.14); }
+  .lightbox.open .lb-close { opacity: 1; }
 
   /* ───── Meta ───── */
   .meta {
@@ -424,8 +573,9 @@
 <main class="card">
 
   <div class="artwork-wrap">
-    <div class="artwork" id="artwork">
+    <div class="artwork" id="artwork" role="button" tabindex="0" aria-label="Open cover">
       <img id="cover" src="artwork.png" alt="" width="1000" height="1000">
+      <span class="glare"></span>
     </div>
   </div>
 
@@ -469,6 +619,36 @@
 
 <div class="toast" id="toast" role="status"></div>
 
+<!-- Cover in primo piano: click per girarla -->
+<div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-label="Cover">
+  <button class="lb-close" id="lbClose" type="button" aria-label="Close">✕</button>
+  <div class="lb-stage" id="lbStage">
+    <div class="lb-tilt" id="lbTilt">
+      <div class="lb-flip" id="lbFlip">
+        <div class="face front">
+          <img id="lbCover" src="artwork.png" alt="">
+          <span class="glare"></span>
+        </div>
+        <div class="face back">
+          <div class="back-head">
+            <span class="b-artist" id="bArtist"></span>
+            <svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 0L13.4 8.6 20.5 3.5 15.4 10.6 24 12 15.4 13.4 20.5 20.5 13.4 15.4 12 24 10.6 15.4 3.5 20.5 8.6 13.4 0 12 8.6 10.6 3.5 3.5 10.6 8.6Z"/></svg>
+          </div>
+          <div class="b-title" id="bTitle"></div>
+          <ol class="tracklist" id="bTracks"></ol>
+          <div class="credits" id="bCredits"></div>
+          <div class="back-foot">
+            <div class="legal" id="bLegal"></div>
+            <div class="barcode" id="bBarcode" aria-hidden="true"></div>
+          </div>
+          <span class="glare"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="lb-hint" id="lbHint">Tap the cover to flip</div>
+</div>
+
 <script>
 /* ═══════════════════════════════════════════════════════════════
    ⚙️  CONFIG — change everything here, nothing else to touch
@@ -492,6 +672,20 @@ const CONFIG = {
     amazon:       '#',
     tidal:        '#',
     deezer:       '#',
+  },
+
+  // Retro della copertina (si vede cliccando sull'artwork ingrandito)
+  back: {
+    tracks: [
+      { title: 'Track Title',                  duration: '2:58' },
+      { title: 'Track Title (Extended Mix)',   duration: '5:12' },
+    ],
+    credits: [
+      ['Produced by', 'Yeezik'],
+      ['Mixed & mastered by', 'Yeezik'],
+      ['Artwork', 'Yeezik'],
+    ],
+    legal: '℗ & © 2026 Yeezik. All rights reserved.',
   },
 };
 /* ═══════════════════════════════════════════════════════════════ */
@@ -660,20 +854,149 @@ $('shareBtn').addEventListener('click', async () => {
   }
 })();
 
-/* ── Subtle 3D tilt on the cover (desktop only) ── */
+/* ── 3D tilt + glare (shared by the small cover and the big one) ── */
+function tilt(el, glareEls, e, max) {
+  const r = el.getBoundingClientRect();
+  const x = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1);
+  const y = Math.min(Math.max((e.clientY - r.top) / r.height, 0), 1);
+  el.style.setProperty('--ry', `${(x - 0.5) * max * 2}deg`);
+  el.style.setProperty('--rx', `${(0.5 - y) * max * 2}deg`);
+  glareEls.forEach(g => {
+    g.style.setProperty('--gx', `${x * 100}%`);
+    g.style.setProperty('--gy', `${y * 100}%`);
+    g.style.setProperty('--go', '1');
+  });
+}
+function untilt(el, glareEls) {
+  el.style.setProperty('--ry', '0deg');
+  el.style.setProperty('--rx', '0deg');
+  glareEls.forEach(g => g.style.setProperty('--go', '0'));
+}
+
+const art = $('artwork');
+const artGlare = [art.querySelector('.glare')];
+
 if (!reduceMotion && matchMedia('(pointer: fine)').matches) {
-  const art = $('artwork');
-  art.addEventListener('pointermove', e => {
-    const r = art.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5;
-    const y = (e.clientY - r.top) / r.height - 0.5;
-    art.style.setProperty('--ry', `${x * 10}deg`);
-    art.style.setProperty('--rx', `${-y * 10}deg`);
-  });
+  art.addEventListener('pointerenter', () => { art.classList.add('tilting'); art.style.setProperty('--sc', '1.03'); });
+  art.addEventListener('pointermove', e => tilt(art, artGlare, e, 16));
   art.addEventListener('pointerleave', () => {
-    art.style.setProperty('--ry', '0deg');
-    art.style.setProperty('--rx', '0deg');
+    art.classList.remove('tilting');
+    art.style.setProperty('--sc', '1');
+    untilt(art, artGlare);
   });
+}
+
+/* ── Back cover content ── */
+(() => {
+  const b = CONFIG.back || {};
+  $('bArtist').textContent = CONFIG.artist;
+  $('bTitle').textContent = CONFIG.title;
+  $('lbCover').src = CONFIG.cover;
+  $('lbCover').alt = `${CONFIG.title} — ${CONFIG.artist} cover`;
+  $('bTracks').innerHTML = (b.tracks || []).map((t, i) =>
+    `<li><span class="n">${String(i + 1).padStart(2, '0')}</span><span class="t"></span><span class="dur"></span></li>`).join('');
+  [...$('bTracks').children].forEach((li, i) => {
+    li.querySelector('.t').textContent = b.tracks[i].title;
+    li.querySelector('.dur').textContent = b.tracks[i].duration || '';
+  });
+  $('bCredits').innerHTML = '';
+  (b.credits || []).forEach(([role, who]) => {
+    const line = document.createElement('div');
+    line.append(`${role} `);
+    const strong = document.createElement('b');
+    strong.textContent = who;
+    line.append(strong);
+    $('bCredits').append(line);
+  });
+  $('bLegal').innerHTML = '';
+  $('bLegal').append(b.legal || '');
+  const br = document.createElement('br');
+  $('bLegal').append(br, `Release ${dateLabel}`);
+  // decorative barcode built from the title so it's always the same
+  let seed = [...(CONFIG.title + CONFIG.artist)].reduce((a, c) => a + c.charCodeAt(0), 7);
+  const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  $('bBarcode').innerHTML = Array.from({ length: 34 }, () =>
+    `<i style="width:${rnd() < 0.3 ? 3 : 1}px"></i>`).join('');
+})();
+
+/* ── Lightbox: cover flies to the front, tap to flip ── */
+const lb = $('lightbox'), stage = $('lbStage'), lbTilt = $('lbTilt'), flipper = $('lbFlip');
+const lbGlare = [...lb.querySelectorAll('.glare')];
+let lbOpen = false, busy = false;
+
+// transform that puts the big stage exactly on top of the small cover
+function fromSmall() {
+  const a = art.getBoundingClientRect();
+  const s = stage.getBoundingClientRect();
+  const dx = (a.left + a.width / 2) - (s.left + s.width / 2);
+  const dy = (a.top + a.height / 2) - (s.top + s.height / 2);
+  return `translate(${dx}px, ${dy}px) scale(${a.width / s.width})`;
+}
+
+function openCover() {
+  if (lbOpen || busy) return;
+  lbOpen = true;
+  lb.classList.remove('flipped');
+  lb.setAttribute('aria-hidden', 'false');
+  untilt(art, artGlare);
+  stage.style.transition = 'none';
+  lb.style.visibility = 'visible';
+  stage.style.transform = fromSmall();
+  art.style.visibility = 'hidden';
+  stage.getBoundingClientRect(); // force layout before animating
+  stage.style.transition = '';
+  requestAnimationFrame(() => {
+    lb.classList.add('open');
+    stage.style.transform = 'none';
+  });
+  document.body.style.overflow = 'hidden';
+  $('lbClose').focus({ preventScroll: true });
+}
+
+function closeCover() {
+  if (!lbOpen || busy) return;
+  busy = true;
+  const wasFlipped = lb.classList.contains('flipped');
+  lb.classList.remove('flipped');
+  untilt(lbTilt, lbGlare);
+  const go = () => {
+    lb.classList.remove('open');
+    stage.style.transform = fromSmall();
+    setTimeout(() => {
+      art.style.visibility = '';
+      lb.style.visibility = '';
+      stage.style.transform = '';
+      lb.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      lbOpen = busy = false;
+      art.focus({ preventScroll: true });
+    }, reduceMotion ? 0 : 560);
+  };
+  // if it's showing the back, turn it to the front first
+  wasFlipped && !reduceMotion ? setTimeout(go, 450) : go();
+}
+
+art.addEventListener('click', openCover);
+art.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCover(); } });
+
+flipper.addEventListener('click', e => {
+  e.stopPropagation();
+  lb.classList.toggle('flipped');
+  $('lbHint').textContent = lb.classList.contains('flipped') ? 'Tap again to turn it back' : 'Tap the cover to flip';
+});
+
+lb.addEventListener('click', closeCover);
+$('lbClose').addEventListener('click', e => { e.stopPropagation(); closeCover(); });
+document.addEventListener('keydown', e => {
+  if (!lbOpen) return;
+  if (e.key === 'Escape') closeCover();
+  if (e.key === 'f' || e.key === 'F') lb.classList.toggle('flipped');
+});
+
+if (!reduceMotion) {
+  lb.addEventListener('pointermove', e => { if (lbOpen && !busy) tilt(lbTilt, lbGlare, e, 18); });
+  lb.addEventListener('pointerleave', () => untilt(lbTilt, lbGlare));
+  lb.addEventListener('pointerup', e => { if (e.pointerType === 'touch') untilt(lbTilt, lbGlare); });
 }
 </script>
 </body>
