@@ -1029,6 +1029,8 @@ function fromSmall() {
   return `translate(${dx}px, ${dy}px) scale(${a.width / s.width})`;
 }
 
+const SPIN_MS = 1300; // durata dei 2 giri all'apertura
+
 function openCover() {
   if (lbOpen || busy) return;
   lbOpen = true;
@@ -1040,10 +1042,24 @@ function openCover() {
   stage.style.transform = fromSmall();
   art.style.visibility = 'hidden';
   stage.getBoundingClientRect(); // force layout before animating
-  stage.style.transition = '';
+  // slower flight so the spin has time to play
+  stage.style.transition = reduceMotion ? '' : `transform ${SPIN_MS}ms cubic-bezier(.45,.05,.3,1)`;
   requestAnimationFrame(() => {
     lb.classList.add('open');
     stage.style.transform = 'none';
+    if (!reduceMotion) {
+      busy = true;
+      // two full turns while it flies to the front (shows the back as it spins)
+      const spin = flipper.animate(
+        [
+          { transform: 'rotateY(0deg) scale(1)' },
+          { transform: 'rotateY(360deg) scale(1.06)', offset: 0.5 },
+          { transform: 'rotateY(720deg) scale(1)' },
+        ],
+        { duration: SPIN_MS, easing: 'cubic-bezier(.45,.05,.3,1)' }
+      );
+      spin.onfinish = spin.oncancel = () => { busy = false; stage.style.transition = ''; };
+    }
   });
   document.body.style.overflow = 'hidden';
   $('lbClose').focus({ preventScroll: true });
